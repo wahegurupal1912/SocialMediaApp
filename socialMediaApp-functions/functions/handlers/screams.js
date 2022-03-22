@@ -1,5 +1,5 @@
 import { db } from '../util/admin.js';
-import { collection, getDocs, addDoc, query, orderBy } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, addDoc, query, orderBy, where } from "firebase/firestore";
 import { validateScream } from '../util/validators.js';
 
 export const getAllScreams = async (req, res) => {
@@ -39,5 +39,27 @@ export const postOneScream = async (req, res) => {
     catch(error){
         res.status(500).json({erorr: error.message});
         console.error(error);
+    }
+};
+
+export const getScream = async (req, res) =>  {
+    let screamData = {};
+    try{
+        const docRef = await getDoc(doc(db, "screams", req.params.screamId));
+        if(!docRef.exists()){
+            return res.status(404).json({error: 'Scream not found'});
+        }
+    
+        screamData = docRef.data();
+        screamData.screamId = docRef.id;
+        const data = await getDocs(query(collection(db, "comments"), where('screamId', '==', req.params.screamId), orderBy('createdAt', 'desc')));
+        screamData.comments = [];
+        data.forEach(doc => {
+            screamData.comments.push(doc.data());
+        });
+        return res.json(screamData);   
+    } catch(err){
+        console.log(err);
+        return res.status(500).json({error: err.code});
     }
 };

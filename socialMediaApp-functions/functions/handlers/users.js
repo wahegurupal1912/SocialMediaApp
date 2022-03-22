@@ -1,6 +1,6 @@
 
 import { db, admin } from '../util/admin.js';
-import { getDoc, setDoc, updateDoc, doc } from "firebase/firestore";
+import { getDoc, getDocs, setDoc, updateDoc, doc, collection, query, where } from "firebase/firestore";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 
 import { validateSignUpData, validateLoginData, reduceUserDetails } from '../util/validators.js';
@@ -105,6 +105,26 @@ export const addUserDetails = async (req, res) => {
         return res.json({message: 'Details added successfully'});
     }
     catch(err){
+        console.error(err);
+        return res.status(500).json({error: err.code});
+    }
+};
+
+// Get full user details
+export const getAuthenticatedUser = async (req, res) => {
+    let userData = {};
+    try{
+        const docRef = await getDoc(doc(db, "users", req.user.handle));
+        if(docRef.exists()){
+            userData.credentials = docRef.data();
+            const data = await getDocs(query(collection(db, "screams"), where('userHandle', '==', req.user.handle)));
+            userData.likes = [];
+            data.forEach(doc => {
+                userData.likes.push(doc.data());
+            });
+            return res.json(userData);
+        }
+    } catch(err){
         console.error(err);
         return res.status(500).json({error: err.code});
     }

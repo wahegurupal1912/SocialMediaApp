@@ -1,8 +1,8 @@
 import functions from 'firebase-functions';
 import express from 'express';
 import fbAuth from './util/fbAuth.js';
-import { getAllScreams, postOneScream } from './handlers/screams.js';
-import { signup, login, uploadImage, addUserDetails } from './handlers/users.js';
+import { getAllScreams, postOneScream, getScream } from './handlers/screams.js';
+import { signup, login, uploadImage, addUserDetails, getAuthenticatedUser } from './handlers/users.js';
 
 /*
 status codes
@@ -18,12 +18,18 @@ const app = express(); //initialize express for routing
 // Scream Routes
 app.get('/screams', getAllScreams);
 app.post('/scream', fbAuth, postOneScream);
+app.get('/scream/:screamId', getScream);
+// TODO: delete scream
+// TODO: like a scream
+// TODO: unlike a scream
+// TODO: comment on scream
 
 //User Routes
 app.post('/signup', signup);
 app.post('/login', login);
 app.post('/user/image', fbAuth, uploadImage);
 app.post('/user', fbAuth, addUserDetails);
+app.get('/user', fbAuth, getAuthenticatedUser);
 
 
 //change region to canada to reduce latency
