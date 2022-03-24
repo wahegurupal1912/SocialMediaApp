@@ -1,7 +1,8 @@
 import { db } from '../util/admin.js';
-import { collection, doc, getDoc, getDocs, addDoc, query, orderBy, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, orderBy, where, limit } from "firebase/firestore";
 import { validateScream } from '../util/validators.js';
 
+// get all the screams
 export const getAllScreams = async (req, res) => {
     let screams = [];
     try{
@@ -22,6 +23,7 @@ export const getAllScreams = async (req, res) => {
     }
 }
 
+// post one scream
 export const postOneScream = async (req, res) => {
     const {valid, errors} = validateScream(req.body);
     if(!valid) return errors.msg;
@@ -29,12 +31,17 @@ export const postOneScream = async (req, res) => {
     const newScream = {
         body: req.body.body,
         userHandle: req.user.handle,
-        createdAt: new Date().toISOString()
+        userImage: req.user.imageUrl,
+        createdAt: new Date().toISOString(),
+        likeCount: 0,
+        commentCount: 0
     };
 
     try{
         const doc = await addDoc(collection(db, "screams"), newScream);
-        res.json({message: `document ${doc.id} created successfully`})
+        const resScream = newScream;
+        resScream.screamId = doc.id;
+        res.json(resScream);
     }
     catch(error){
         res.status(500).json({erorr: error.message});
@@ -83,11 +90,83 @@ export const commentOnScream = async (req, res) => {
             return res.status(404).json({error: 'Scream not found'});
         }
     
-        const commentRef = await addDoc(collection(db, "comments"), newComment);
+        await addDoc(collection(db, "comments"), newComment);
         return res.json(newComment);
     }
     catch(err){
         console.error(err);
         return res.status(500).json({error: 'Something went wrong'});
+    }
+};
+
+// like a scream
+export const likeScream = async (req, res) => {
+    try{
+        const likeDoc = await getDocs(query(collection(db, "likes"), where('userHandle', '==', req.user.handle), where('screamId', '==', req.params.screamId), limit(1)));
+
+        const screamDoc = doc(db, "screams", req.params.screamId);
+    
+        let screamData;
+    
+        const screamRef = await getDoc(screamDoc);
+        if(screamRef.exists()){
+            screamData = screamRef.data();
+            screamData.screamId = screamRef.id;
+    
+            if(likeDoc.empty){
+                await addDoc(collection(db, "likes"), {
+                    screamId: req.params.screamId,
+                    userHandle: req.user.handle
+                });
+    
+                screamData.likeCount++;
+    
+                await updateDoc(screamDoc, { likeCount: screamData.likeCount });
+                return res.json(screamData);
+            }
+            else{
+                return res.status(400).json({error: 'Scream already liked'});
+            }
+        }
+        else{
+            res.status(404).json({error: 'Scream not found'});
+        }
+    } catch(err){
+        console.error(err);
+        return res.status(500).json({error: err.code});
+    }
+};
+
+// unlike a scream
+export const unlikeScream = async (req, res) => {
+    try{
+        const likeDoc = await getDocs(query(collection(db, "likes"), where('userHandle', '==', req.user.handle), where('screamId', '==', req.params.screamId), limit(1)));
+
+        const screamDoc = doc(db, "screams", req.params.screamId);
+    
+        let screamData;
+    
+        const screamRef = await getDoc(screamDoc);
+        if(screamRef.exists()){
+            screamData = screamRef.data();
+            screamData.screamId = screamRef.id;
+    
+            if(likeDoc.empty){
+                return res.status(400).json({error: 'Scream already liked'});
+            }
+            else{
+                console.log(likeDoc.docs[0].id);
+                await deleteDoc(doc(db, "likes", likeDoc.docs[0].id));
+                screamData.likeCount--;
+                await updateDoc(screamDoc, { likeCount: screamData.likeCount });
+                return res.json(screamData);
+            }
+        }
+        else{
+            res.status(404).json({error: 'Scream not found'});
+        }
+    } catch(err){
+        console.error(err);
+        return res.status(500).json({error: err.code});
     }
 }
