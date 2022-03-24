@@ -89,6 +89,8 @@ export const commentOnScream = async (req, res) => {
         if(!docRef.exists()){
             return res.status(404).json({error: 'Scream not found'});
         }
+
+        await updateDoc(docRef.ref, { commentCount: docRef.data().commentCount + 1 });
     
         await addDoc(collection(db, "comments"), newComment);
         return res.json(newComment);
