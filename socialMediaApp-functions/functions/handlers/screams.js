@@ -42,6 +42,7 @@ export const postOneScream = async (req, res) => {
     }
 };
 
+//fetch one scream
 export const getScream = async (req, res) =>  {
     let screamData = {};
     try{
@@ -63,3 +64,30 @@ export const getScream = async (req, res) =>  {
         return res.status(500).json({error: err.code});
     }
 };
+
+// Add a comment for a scream
+export const commentOnScream = async (req, res) => {
+    if(req.body.body.trim() === '') return res.status(400).json({error: 'Must not be empty'});
+
+    const newComment = {
+        body: req.body.body,
+        createdAt: new Date().toISOString(),
+        screamId: req.params.screamId,
+        userHandle: req.user.handle,
+        userImage: req.user.imageUrl
+    }
+
+    try{
+        const docRef = await getDoc(doc(db, "screams", req.params.screamId));
+        if(!docRef.exists()){
+            return res.status(404).json({error: 'Scream not found'});
+        }
+    
+        const commentRef = await addDoc(collection(db, "comments"), newComment);
+        return res.json(newComment);
+    }
+    catch(err){
+        console.error(err);
+        return res.status(500).json({error: 'Something went wrong'});
+    }
+}

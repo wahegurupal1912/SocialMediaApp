@@ -16,6 +16,7 @@ const fbAuth = (req, res, next) => {
         req.user = decodedToken;
         const data = await getDocs(query(collection(db, "users"), where('userId', '==', req.user.uid), limit(1)));
         req.user.handle = data.docs[0].data().handle;
+        req.user.imageUrl = data.docs[0].data().imageUrl;
         return next();
     })
     .catch((err) => {

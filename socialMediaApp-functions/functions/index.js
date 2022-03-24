@@ -1,7 +1,7 @@
 import functions from 'firebase-functions';
 import express from 'express';
 import fbAuth from './util/fbAuth.js';
-import { getAllScreams, postOneScream, getScream } from './handlers/screams.js';
+import { getAllScreams, postOneScream, getScream, commentOnScream } from './handlers/screams.js';
 import { signup, login, uploadImage, addUserDetails, getAuthenticatedUser } from './handlers/users.js';
 
 /*
@@ -19,10 +19,10 @@ const app = express(); //initialize express for routing
 app.get('/screams', getAllScreams);
 app.post('/scream', fbAuth, postOneScream);
 app.get('/scream/:screamId', getScream);
+app.post('/scream/:screamId/comment', fbAuth, commentOnScream);
 // TODO: delete scream
 // TODO: like a scream
 // TODO: unlike a scream
-// TODO: comment on scream
 
 //User Routes
 app.post('/signup', signup);
