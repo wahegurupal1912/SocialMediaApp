@@ -172,3 +172,25 @@ export const unlikeScream = async (req, res) => {
         return res.status(500).json({error: err.code});
     }
 }
+
+
+// delete a scream
+export const deleteScream = async (req, res) => {
+    try{
+        const document = doc(db, "screams", req.params.screamId);
+        const docRef = await getDoc(document);
+        if(!docRef.exists()){
+            return res.status(404).json({error: 'Scream not found'});
+        }
+        if(docRef.data().userHandle !== req.user.handle){
+            return res.status(403).json({error: 'Unauthorized'});
+        }
+        else{
+            await deleteDoc(document);
+            return res.json('Document deleted successfully');
+        }
+    } catch(err){
+        console.error(err);
+        return res.status(500).json({error: err.code});
+    }
+}

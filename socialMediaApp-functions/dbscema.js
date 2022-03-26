@@ -27,7 +27,15 @@ let db = {
             body: 'Good work fella!',
             createdAt: '2022-03-13T23:00:57.700Z'
         }
-    ]
+    ],
+    notifications: {
+        recipient: 'user',
+        sender: 'john',
+        read: 'true | false',
+        screamId: 'asfguewfg8gdsf',
+        type: 'like | comment',
+        createdAt: '2022-03-12T10:59:52.798Z'
+    }
 };
 
 // Redux Data
