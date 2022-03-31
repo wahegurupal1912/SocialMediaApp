@@ -4,7 +4,7 @@ import fbAuth from './util/fbAuth.js';
 import { db } from './util/admin.js';
 import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
 import { getAllScreams, postOneScream, getScream, commentOnScream, likeScream, unlikeScream, deleteScream } from './handlers/screams.js';
-import { signup, login, uploadImage, addUserDetails, getAuthenticatedUser } from './handlers/users.js';
+import { signup, login, uploadImage, addUserDetails, getAuthenticatedUser, getUserDetails, markNotificationsRead } from './handlers/users.js';
 
 /*
 status codes
@@ -32,6 +32,8 @@ app.post('/login', login);
 app.post('/user/image', fbAuth, uploadImage);
 app.post('/user', fbAuth, addUserDetails);
 app.get('/user', fbAuth, getAuthenticatedUser);
+app.get('/user/:handle', getUserDetails);
+app.post('/notifications', fbAuth, markNotificationsRead);
 
 
 //change region to canada to reduce latency
@@ -48,7 +50,7 @@ export const createNotificationOnLike = functions.region('northamerica-northeast
                     sender: snapshot.data().userHandle,
                     type: 'like',
                     read: false,
-                    screamId: doc.id
+                    screamId: screamRef.id
                 });
     
             }
@@ -80,7 +82,7 @@ export const createNotificationOnComment = functions.region('northamerica-northe
                     sender: snapshot.data().userHandle,
                     type: 'comment',
                     read: false,
-                    screamId: doc.id
+                    screamId: screamRef.id
                 });
     
             }

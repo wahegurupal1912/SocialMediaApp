@@ -1,6 +1,6 @@
 
 import { db, admin } from '../util/admin.js';
-import { getDoc, getDocs, setDoc, updateDoc, doc, collection, query, where } from "firebase/firestore";
+import { getDoc, getDocs, setDoc, updateDoc, doc, collection, writeBatch, query, where, orderBy, limit } from "firebase/firestore";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 
 import { validateSignUpData, validateLoginData, reduceUserDetails } from '../util/validators.js';
@@ -110,6 +110,56 @@ export const addUserDetails = async (req, res) => {
     }
 };
 
+// Get any users details
+export const getUserDetails = async (req, res) => {
+    let userData = {};
+    try{
+        const user = await getDoc(doc(db, "users", req.params.handle));
+
+        if(user.exists()){
+            userData.user = user.data();
+    
+            const screams = await getDocs(query(collection(db, "screams"), where('userHandle', '==', req.params.handle), orderBy('createdAt', 'desc')));
+            userData.screams = [];
+            screams.forEach(scream => {
+                userData.screams.push({
+                    body: scream.data().body,
+                    createdAt: scream.data().createdAt,
+                    userHandle: scream.data().userHandle,
+                    userImage: scream.data().userImage,
+                    likeCount: scream.data().likeCount,
+                    commentCount: scream.data().commentCount,
+                    screamId: scream.id,
+                });
+            });
+            return res.json(userData);
+        } else{
+            return res.status(404).json({error: 'User not found'});
+        }
+    }catch(err){
+        console.error(err);
+        return res.status(500).json({error: err.code});
+    }
+};
+
+// mark the notificaitons read for the user
+export const markNotificationsRead = (req, res) => {
+    let batch = writeBatch(db);
+    req.body.forEach(notificationId => {
+        const notificaiton = doc(db, "notifications", notificationId);
+        batch.update(notificaiton, {read: true});
+    })
+
+    batch.commit()
+    .then(() => {
+        return res.json({message: 'Notificaitons marked read'});
+    })
+    .catch(err => {
+        console.log(err);
+        return res.status(500).json({error: err.code});
+    });
+};
+
 // Get full user details
 export const getAuthenticatedUser = async (req, res) => {
     let userData = {};
@@ -117,11 +167,27 @@ export const getAuthenticatedUser = async (req, res) => {
         const docRef = await getDoc(doc(db, "users", req.user.handle));
         if(docRef.exists()){
             userData.credentials = docRef.data();
-            const data = await getDocs(query(collection(db, "screams"), where('userHandle', '==', req.user.handle)));
+            const data = await getDocs(query(collection(db, "likes"), where('userHandle', '==', req.user.handle)));
             userData.likes = [];
             data.forEach(doc => {
                 userData.likes.push(doc.data());
             });
+
+            userData.notifications = [];
+            const notifications = await getDocs(query(collection(db, "notifications"), where('recipient', '==', req.user.handle), orderBy('createdAt', 'desc'), limit(10)));
+
+            notifications.forEach(notification => {
+                userData.notifications.push({
+                    recipient: notification.data().recipient,
+                    sender: notification.data().sender,
+                    createdAt: notification.data().createdAt,
+                    screamId: notification.data().screamId,
+                    type: notification.data().type,
+                    read: notification.data().read,
+                    notificationId: notification.id
+                });
+            })
+
             return res.json(userData);
         }
     } catch(err){
