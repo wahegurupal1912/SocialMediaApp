@@ -6,7 +6,7 @@ import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Button from '@mui/material/Button';
 
-function NavBar() {
+const NavBar = () => {
   return (
     <AppBar>
       <Toolbar className='nav-container'>
