@@ -11,34 +11,33 @@ import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
 
-//styling
-const cardStyle = css({
-  display: 'flex',
-  marginBottom: '20px'
-});
-
-const cardImage = css({
-  minWidth: '200px',
-  objectFit: 'cover'
-});
-
-const cardContent = css({
-  padding: 25
-});
+const styles = {
+  card: css({
+    display: 'flex',
+    marginBottom: '20px'
+  }),
+  image: css({
+    minWidth: '200px',
+    objectFit: 'cover'
+  }),
+  content: css({
+    padding: 25
+  })
+}
 
 const Scream = (props) => {
   const { body, createdAt, userImage, userHandle, screamId, likeCount, commentCount } = props.scream;
 
   dayjs.extend(relativeTime);
   return (
-    <Card css={cardStyle}>
+    <Card css={styles.card}>
         <CardMedia
-        css={cardImage}
-        image={ userImage }
+        css={styles.image}
+        image={userImage}
         title='Profile Image'
         />
 
-        <CardContent css={cardContent}>
+        <CardContent css={styles.content}>
             <Typography variant='h5' component={Link} to={`/users/${userHandle}`} color='primary'>{userHandle}</Typography>
             <Typography variant='body2' color="textSecondary">{dayjs(createdAt).fromNow()}</Typography>
             <Typography variant='body1'>{body}</Typography>
