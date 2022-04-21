@@ -1,34 +1,34 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import customTheme from './utils/theme';
+import jwtDecode from 'jwt-decode';
 
 // Components
 import NavBar from './components/NavBar';
+import AuthRoute from './utils/AuthRoute';
 
 // Pages
 import Home from './pages/Home';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 
-const theme = createTheme({
-  palette: {
-    primary: {
-      light: '#33c9dc',
-      main: '#00bcd4',
-      dark: '#008394',
-      contrastText: '#fff'
-    },
-    secondary: {
-      light: '#ff6333',
-      main: '#ff3d00',
-      dark: '#b22a00',
-      contrastText: '#fff'
-    }
-  },
-  typography: {
-    useNextVariants: true
+const theme = createTheme(customTheme);
+
+let authenticated;
+const token = localStorage.FBIdToken;
+if(token){
+  const decodedToken = jwtDecode(token);
+  console.log(decodedToken);
+
+  if(decodedToken.exp * 1000 < Date.now()){
+    window.location.href = '/login';
+    authenticated = false;
   }
-});
+  else{
+    authenticated = true;
+  }
+}
 
 const App = () => {
     return (
@@ -38,9 +38,15 @@ const App = () => {
             <NavBar />
             <div className='container'>
               <Routes>
-                <Route path="/" element={ <Home /> } />
-                <Route path="/login" element={ <Login /> } />
-                <Route path="/signup" element={ <SignUp /> } />
+                <Route exact path='/' element={<Home/>}/>
+
+                <Route exact path='/login' element={<AuthRoute authenticated={authenticated} />}>
+                  <Route exact path='/login' element={<Login/>}/>
+                </Route>
+
+                <Route exact path='/signup' element={<AuthRoute authenticated={authenticated} />}>
+                  <Route exact path='/signup' element={<SignUp/>}/>
+                </Route>
               </Routes>
             </div>
           </Router>
