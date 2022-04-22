@@ -1,6 +1,6 @@
 /** @jsxRuntime classic */
 /** @jsx jsx */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { css, jsx } from '@emotion/react';
 import appIcon from '../images/icon.png';
 import axios from 'axios';
@@ -12,6 +12,10 @@ import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
+
+// Redux
+import { connect } from 'react-redux';
+import { loginUser } from '../redux/actions/userActions';
 
 const styles = {
   form: css({
@@ -44,29 +48,22 @@ const Login = (props) => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState([]);
   const navigate = useNavigate();
 
+  const {UI: { loading }} = props;
+
+  useEffect(() => {
+    setErrors(props.UI.errors);
+  }, [props.UI.errors]);
+
   const handleSubmit = (event) => {
     event.preventDefault();
-    setLoading(true);
     const userData = {
       email: email,
       password: password
     }
-
-    axios.post('/login', userData)
-      .then(res => {
-        localStorage.setItem('FBIdToken', `Bearer ${res.data.token}`);
-        console.log(res.data);
-        setLoading(false);
-        navigate('/');
-      })
-      .catch(err => {
-        setErrors(err.response.data);
-        setLoading(false);
-      });
+    props.loginUser(userData, navigate);
   };
   
   const handleChange = (event) => {
@@ -117,4 +114,13 @@ const Login = (props) => {
   )
 }
 
-export default Login;
+const mapStateToProps = (state) => ({
+  user: state.user,
+  UI: state.UI
+});
+
+const mapActionsToProps = {
+  loginUser
+}
+
+export default connect(mapStateToProps, mapActionsToProps)(Login);

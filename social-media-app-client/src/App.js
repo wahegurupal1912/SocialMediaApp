@@ -4,6 +4,10 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import customTheme from './utils/theme';
 import jwtDecode from 'jwt-decode';
 
+//Redux
+import { Provider } from 'react-redux';
+import store from './redux/store';
+
 // Components
 import NavBar from './components/NavBar';
 import AuthRoute from './utils/AuthRoute';
@@ -22,7 +26,7 @@ if(token){
   console.log(decodedToken);
 
   if(decodedToken.exp * 1000 < Date.now()){
-    window.location.href = '/login';
+    // window.location.href = '/login';
     authenticated = false;
   }
   else{
@@ -33,24 +37,24 @@ if(token){
 const App = () => {
     return (
       <ThemeProvider theme={theme}>
-        <div className="App">
-          <Router>
-            <NavBar />
-            <div className='container'>
-              <Routes>
-                <Route exact path='/' element={<Home/>}/>
+        <Provider store={store}>
+            <Router>
+              <NavBar />
+              <div className='container'>
+                <Routes>
+                  <Route exact path='/' element={<Home/>}/>
 
-                <Route exact path='/login' element={<AuthRoute authenticated={authenticated} />}>
-                  <Route exact path='/login' element={<Login/>}/>
-                </Route>
+                  <Route exact path='/login' element={<AuthRoute authenticated={authenticated} />}>
+                    <Route exact path='/login' element={<Login/>}/>
+                  </Route>
 
-                <Route exact path='/signup' element={<AuthRoute authenticated={authenticated} />}>
-                  <Route exact path='/signup' element={<SignUp/>}/>
-                </Route>
-              </Routes>
-            </div>
-          </Router>
-        </div>
+                  <Route exact path='/signup' element={<AuthRoute authenticated={authenticated} />}>
+                    <Route exact path='/signup' element={<SignUp/>}/>
+                  </Route>
+                </Routes>
+              </div>
+            </Router>
+        </Provider>
       </ThemeProvider>
     )
 };
