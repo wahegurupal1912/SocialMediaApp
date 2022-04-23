@@ -3,10 +3,13 @@ import './App.css';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import customTheme from './utils/theme';
 import jwtDecode from 'jwt-decode';
+import axios from 'axios';
 
 //Redux
 import { Provider } from 'react-redux';
 import store from './redux/store';
+import { SET_AUTHENTICATED } from './redux/types';
+import { logoutUser, getUserData } from './redux/actions/userActions';
 
 // Components
 import NavBar from './components/NavBar';
@@ -19,18 +22,18 @@ import SignUp from './pages/SignUp';
 
 const theme = createTheme(customTheme);
 
-let authenticated;
 const token = localStorage.FBIdToken;
 if(token){
   const decodedToken = jwtDecode(token);
-  console.log(decodedToken);
 
   if(decodedToken.exp * 1000 < Date.now()){
+    store.dispatch(logoutUser());
     // window.location.href = '/login';
-    authenticated = false;
   }
   else{
-    authenticated = true;
+    store.dispatch({ type: SET_AUTHENTICATED });
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    store.dispatch(getUserData());
   }
 }
 
@@ -44,11 +47,11 @@ const App = () => {
                 <Routes>
                   <Route exact path='/' element={<Home/>}/>
 
-                  <Route exact path='/login' element={<AuthRoute authenticated={authenticated} />}>
+                  <Route exact path='/login' element={<AuthRoute />}>
                     <Route exact path='/login' element={<Login/>}/>
                   </Route>
 
-                  <Route exact path='/signup' element={<AuthRoute authenticated={authenticated} />}>
+                  <Route exact path='/signup' element={<AuthRoute />}>
                     <Route exact path='/signup' element={<SignUp/>}/>
                   </Route>
                 </Routes>

@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { css, jsx } from '@emotion/react';
 import appIcon from '../images/icon.png';
-import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 
 // MUI Elements
@@ -121,6 +120,6 @@ const mapStateToProps = (state) => ({
 
 const mapActionsToProps = {
   loginUser
-}
+};
 
 export default connect(mapStateToProps, mapActionsToProps)(Login);
